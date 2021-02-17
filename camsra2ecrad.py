@@ -159,7 +159,10 @@ def prepare_ecrad_input(date,
         ## remove nan from psfc 
         ds_sfc = ds_sfc.dropna('lat',how='all',subset=['psfc'])
         ds_sfc = ds_sfc.dropna('lon',how='all',subset=['psfc'])
-        ds_ml = ds_ml.reindex_like(ds_sfc)
+        # reindex to ds_ml to new coordinates
+        # use method 'nearest' with small tolerance as lat lon values differ
+        # due float precision from previouse "ensure interval" step
+        ds_ml = ds_ml.reindex_like(ds_sfc,method='nearest',tolerance=1e+5)
         
         
         ## Prepare ECRAD cols coordinate
