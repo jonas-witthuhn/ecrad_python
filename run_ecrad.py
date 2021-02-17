@@ -191,6 +191,7 @@ def run_ecrad(inputfile,namfile,outfile = False,reduce_out=True,
                          namfile=nam,
                          infile=infile,
                          outfile=out)
+    print(cmd)
     p = subprocess.Popen(cmd.split(),stdout=open('ecrad.log','w'))
     p.wait()
     

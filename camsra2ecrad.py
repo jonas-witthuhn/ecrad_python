@@ -67,6 +67,16 @@ def flatten_coords(A, idx_keep=1):
         B[:,i] = A.take(i,axis=idx_keep).flatten()
     return B
 
+def degto180180(x):
+    """ Ensure X data of unit deg in the interval (-180,180]
+    """
+    x = np.deg2rad(x)
+    newx = np.arctan2(np.sin(x), np.cos(x))
+    return np.rad2deg(newx)
+
+
+
+
 def prepare_ecrad_input(date,
                         ncpath = 'data/nc/',
                         outpath = 'data/ecrad/',
@@ -139,6 +149,12 @@ def prepare_ecrad_input(date,
     # open datasets
     with xr.open_dataset(os.path.join(ncpath,fname_ml)) as ds_ml, \
          xr.open_dataset(os.path.join(ncpath,fname_sfc)) as ds_sfc:
+        
+        # ensure same interval of lat and lon 
+        ds_ml = ds_ml.assign_coords(lon=degto180180(ds_ml.lon.values),
+                                    lat=degto180180(ds_ml.lat.values))
+        ds_sfc = ds_sfc.assign_coords(lon=degto180180(ds_sfc.lon.values),
+                                      lat=degto180180(ds_sfc.lat.values))
         
         ## remove nan from psfc 
         ds_sfc = ds_sfc.dropna('lat',how='all',subset=['psfc'])
