@@ -100,11 +100,22 @@ def make_namfile_str(ecrad_path = "/home/walther/Programms/ecrad-1.2.0",
 
 def reduce_nc(infile,
               outfile="tmp/out.nc",
-              opt_prop_file="/home/walther/Programms/ecrad-1.2.0/data/aerosol_cams_ifs_optics.nc"):
+              opt_prop_file="aerosol_cams_ifs_optics.nc"):
+    
+    """
+    Warning: this function works for gridded input data (time,lat,lon) only.
+    Collocated data in the shape of (time,coord) wont work.
+    """
     with xr.open_dataset(infile) as ds:
-        times = np.unique(ds.time.data)
-        lats = np.unique(ds.latitude.data)
-        lons = np.unique(ds.longitude.data)
+        times, ind=np.unique(ds.time,return_index=True)
+        times = times[np.argsort(ind)]
+        lats, ind=np.unique(ds.latitude,return_index=True)
+        lats = lats[np.argsort(ind)]
+        lons, ind=np.unique(ds.longitude,return_index=True)
+        lons = lons[np.argsort(ind)]
+        
+        if len(lons)*len(lats)*len(times)!= ds.col.size:
+            raise ValueError("function reduce_nc trys to regrid the ecrad output to the shape (time,lat,lon). this wont work with collocated data in the shape of (time,col). Try to run with 'reduce_out=False' and reshape yourself.")
         newshape=(len(times),len(lats),len(lons))
         zen = np.rad2deg(np.arccos(ds.cos_solar_zenith_angle.data.reshape(newshape)))
 
@@ -161,8 +172,8 @@ def reduce_nc(infile,
     return dsn
 
 def run_ecrad(inputfile,namfile,outfile = False,reduce_out=True,
-              ecrad_path="/home/walther/Programms/ecrad-1.2.0/bin/",
-              opt_prop_file="/home/walther/Programms/ecrad-1.2.0/data/aerosol_cams_ifs_optics.nc"):
+              ecrad_path="ecrad-1.2.0/bin/",
+              opt_prop_file="aerosol_cams_ifs_optics.nc"):
     ecrad_path = os.path.abspath(ecrad_path)
     # infile = os.path.relpath(inputfile,ecrad_path)
     # outfile = os.path.relpath(outfile,ecrad_path)
@@ -191,7 +202,7 @@ def run_ecrad(inputfile,namfile,outfile = False,reduce_out=True,
                          namfile=nam,
                          infile=infile,
                          outfile=out)
-    print(cmd)
+    # print(cmd)
     p = subprocess.Popen(cmd.split(),stdout=open('ecrad.log','w'))
     p.wait()
     
@@ -367,13 +378,16 @@ def get_ecrad_ds(ifile,
 
 
 def interp_ds(ds,newtimes,newlats=False,newlons=False):
-    oldtimes = np.unique(ds.time.values)
+    oldtimes,ind = np.unique(ds.time.values,return_index=True)
+    oldtimes = oldtimes[np.argsort(ind)]
     if type(newtimes) == bool:
         newtimes = oldtimes
-    oldlats = np.unique(ds.latitude.values)
+    oldlats,ind = np.unique(ds.latitude.values,return_index=True)
+    oldlats = oldlats[np.argsort(ind)]
     if type(newlats) == bool:
         newlats = oldlats
-    oldlons = np.unique(ds.longitude.values)
+    oldlons,ind = np.unique(ds.longitude.values,return_index=True)
+    oldlons = oldlons[np.argsort(ind)]
     if type(newlons) == bool:
         newlons = oldlons
     
