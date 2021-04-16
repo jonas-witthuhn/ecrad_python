@@ -175,6 +175,19 @@ def run_ecrad(inputfile,namfile,outfile = False,reduce_out=True,
               ecrad_path="ecrad-1.2.0/bin/",
               opt_prop_file="aerosol_cams_ifs_optics.nc"):
     ecrad_path = os.path.abspath(ecrad_path)
+    
+    
+    # check inputfile
+    shape_pressure_hl = inputfile.pressure_hl.values.shape
+    shape_aerosol_mmr = inputfile.aerosol_mmr.values.shape
+    if len(shape_pressure_hl)!=2:
+        raise ValueError("Input file dimensions don't fulfill ecRad requirements. >> Missing column dimension?")
+    if len(shape_aerosol_mmr)!=3:
+        raise ValueError("Input file dimensions don't fulfill ecRad requirements. >> Missing aerosol_type or level dimension?")
+    if (shape_pressure_hl[-1]-1) != shape_aerosol_mmr[-1]:
+        raise ValueError("Input file size of level dimension != (half_level dimensions - 1).")
+    
+    
     # infile = os.path.relpath(inputfile,ecrad_path)
     # outfile = os.path.relpath(outfile,ecrad_path)
     nam = os.path.abspath("tmp/namfile.tmp")
