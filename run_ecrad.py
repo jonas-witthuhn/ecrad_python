@@ -15,7 +15,7 @@ import time
 # import modules.sunpos as sp
 from trosat import sunpos as sp
 
-def make_namfile_str(ecrad_path = "/home/walther/Programms/ecrad-1.2.0",
+def make_namfile_str(ecrad_path = "~/ecrad-1.2.0",
                      optpropfile = "aerosol_cams_ifs_optics.nc",
                      aerosol = True,
                      albedo = True,
@@ -242,7 +242,7 @@ def run_ecrad(inputfile,namfile,outfile = False,reduce_out=True,
     # return ecrad output
     return dsn
 
-def get_ecrad_set(ifile,time=False,reduce_out=True,ecrad_path="/home/walther/Programms/ecrad-1.2.0/bin/",opt_prop_file="/home/walther/Programms/ecrad-1.2.0/data/aerosol_cams_ifs_optics.nc"):
+def get_ecrad_set(ifile,time=False,reduce_out=True,ecrad_path="~/ecrad-1.2.0/bin/",opt_prop_file="~/ecrad-1.2.0/data/aerosol_cams_ifs_optics.nc"):
     """
     Calculate aerosol radiative effect set of ecrad (with and without aerosol),
     at given date and station.
@@ -297,7 +297,7 @@ def get_ecrad_ds(ifile,
                  o3_scale=1,
                  co2_scale=1,
                  time=False,
-                 ecrad_path = "/home/walther/Programms/ecrad-1.2.0/bin/",
+                 ecrad_path = "~/ecrad-1.2.0/bin/",
                  opfile = "aerosol_cams_ifs_optics.nc",
                  debug=False):
     """
