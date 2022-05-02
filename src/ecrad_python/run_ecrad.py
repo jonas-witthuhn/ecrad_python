@@ -21,7 +21,8 @@ def make_namfile_str(ecrad_path = "~/ecrad-1.2.0",
                      albedo = True,
                      h2o_scale = 1,
                      co2_scale = 1,
-                     o3_scale = 1):
+                     o3_scale = 1,
+                     BC_index=11):
     ecrad_path = os.path.abspath(ecrad_path)
     pf = os.path.join(ecrad_path,'data')
     if aerosol:
@@ -85,7 +86,7 @@ def make_namfile_str(ecrad_path = "~/ecrad-1.2.0",
                 do_lw_aerosol_scattering    = {a},
                 aerosol_optics_override_file_name = "{aerfile}",
                 n_aerosol_types             = 11,
-                i_aerosol_type_map          = -1, -2, -3, 1, 8, 6, -4, 10, 11 ,11, -5,
+                i_aerosol_type_map          = -1, -2, -3, 1, 8, 6, -4, 10, {BC_index} , {BC_index}, -5,
                 /
                 """)
 

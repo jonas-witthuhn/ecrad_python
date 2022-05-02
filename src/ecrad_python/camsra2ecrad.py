@@ -16,22 +16,57 @@ from scipy.interpolate import interp1d
 from trosat import sunpos as sp
 # import sunpos as sp
 
-def load_tsi(pf="../data/sorce_tsi_24hr_l3_full.csv"):
-    """ Load the SORCE TSI dataset and read it to an xarray dataset.
-    E0 - solar irradiance at earth orbit is calculated additionally.
+def load_tsi(pf_sorce=None,
+             pf_tsis=None):
     """
-    df=pd.read_csv(pf,parse_dates=[0],date_parser=lambda x: x.astype("datetime64[D]"))
-    ds=xr.Dataset.from_dataframe(df)
-    for key in ds.keys():
-        newkey=key.split()[0]
-        ds=ds.rename_vars({key:newkey})
-    ds=ds.swap_dims({'index':'time'})
-    #calculate earth sun distance
-    # ESD=sp.earth_sun_distance(sp.datetime2julday(ds.time))
-    ESD = sp.earth_sun_distance(ds.time.values)
-    ds = ds.assign(E0=ds['tsi_1au']/(ESD**2))
-    # fill missing days
-    ds = ds.reindex({'time':pd.date_range(ds.time.values[0],ds.time.values[-1],freq='1D')},method='nearest')
+    Load total solar irradiance data (at earth orbit) from SORCE (until 2020-02-28) then use data from TSIS (follow-up mission)
+    SORCE cite:
+    Kopp, G. (2019), SORCE Level 3 Total Solar Irradiance Daily Means, version 018,
+        Greenbelt, MD, USA: NASA Goddard Earth Science Data and Information Services Center (GES DISC),
+        Accessed 2022-04-25 at doi:10.5067/D959YZ53XQ4C
+
+    TSIS cite:
+    Kopp, G. (2020), TSIS TIM Level 3 Total Solar Irradiance 24-hour Means, version 03,
+        Greenbelt, MD, USA: NASA Goddard Earth Science Data and Information Services Center (GES DISC),
+        Accessed 2022-04-25 at doi:10.5067/TSIS/TIM/DATA306
+    """
+
+    def _read_csv(pf):
+        df = pd.read_csv(pf,
+                         comment=';',
+                         header=None,
+                         sep='\s+',
+                         parse_dates=[0],
+                         date_parser=lambda x: pd.to_datetime(x, format='%Y%m%d.500'),
+                         index_col=0,
+                         usecols=[0, 9],
+                         names=['time', 'E0'])
+        ds = df.to_xarray()
+        # Missing Values are zero padded
+        ds = ds.where(ds.tsi_1au > 0, drop=True)
+        return ds
+
+    ds_sorce = False
+    ds_tsis = False
+
+    # SORCE
+    if type(pf_sorce) != type(None):
+        ds_sorce = _read_csv(pf_sorce)
+    # TSIS
+    if type(pf_tsis) != type(None):
+        ds_tsis = _read_csv(pf_tsis)
+    # COMBINE
+    if ds_sorce and ds_tsis:
+        ds = ds_sorce.combine_first(ds_tsis)
+    elif ds_sorce:
+        ds = ds_sorce
+    elif ds_tsis:
+        ds = ds_tsis
+    else:
+        return None
+
+    # fill gaps with nearest value
+    ds = ds.reindex({'time': pd.date_range(ds.time.data[0], ds.time.data[-1])}, method='nearest')
     return ds
 
 def calc_lvl_pressure(A, B, p0=1013.25):
@@ -221,7 +256,9 @@ def make_ecrad_input(date,
     mu0 = np.cos(np.deg2rad(sza))
 
     ## get F0 - solar irradiance at earth orbit
-    ds_tsi = load_tsi(sorce_tsi_fname)
+    if type(sorce_tsi_fname) == str:
+        sorce_tsi_fname = [sorce_tsi_fname]
+    ds_tsi = load_tsi(*sorce_tsi_fname)
     F0 = float(ds_tsi.E0.sel({'time':date.strftime("%Y-%m-%d")}).data)
 
     ## sw_albedo
