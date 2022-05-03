@@ -43,7 +43,7 @@ def load_tsi(pf_sorce=None,
                          names=['time', 'E0'])
         ds = df.to_xarray()
         # Missing Values are zero padded
-        ds = ds.where(ds.tsi_1au > 0, drop=True)
+        ds = ds.where(ds.E0 > 0, drop=True)
         return ds
 
     ds_sorce = False
