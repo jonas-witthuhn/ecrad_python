@@ -96,7 +96,8 @@ def make_namfile_str(ecrad_path = "~/ecrad-1.2.0",
                      albedo=al,
                      h2o=h2o_scale,
                      o3=o3_scale,
-                     co2=co2_scale)
+                     co2=co2_scale,
+                     BC_index=BC_index)
     return file
 
 def reduce_nc(infile,

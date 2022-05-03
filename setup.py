@@ -1,7 +1,7 @@
 from setuptools import setup
 setup(
     name="ecrad_python",
-    version="1.1",
+    version="1.1.1",
     description="Python scripts to convert CAMS input data to ecrad input and run ecrad simulations. Also functions to perturbe input for sensitivity studies.",
     url="https://github.com/jonas-witthuhn/ecrad_python-base",
     license="CC BY-NC",
